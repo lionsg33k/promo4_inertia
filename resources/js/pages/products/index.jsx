@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import AppLayout from '@/layouts/app-layout';
 import { Head, useForm, usePage } from '@inertiajs/react';
@@ -18,14 +18,16 @@ const breadcrumbs = [
 ];
 
 const ProductPage = () => {
+
     const { products } = usePage().props
-    const { data, setData, post, processing, errors, reset } = useForm({
+    const [isUpdateOpened, setIsUpdateOpened] = useState(false)
+    const [selectedProduct, setSelectedProduct] = useState(null)
+    const { data, setData, post, processing, errors, reset, put } = useForm({
         "name": "",
         "price": 0,
         "quantity": 0
     })
 
-    console.log(products);
 
     const submitProduct = () => {
         post("product/store", {
@@ -39,6 +41,17 @@ const ProductPage = () => {
     }
 
 
+    const updateProduct = () => {
+
+        put("/product/update/" + selectedProduct.id, {
+            onError: () => { alert("mochkila fl update") },
+            onSuccess: () => { setIsUpdateOpened(false) },
+            onFinish: () => { reset("name", "price", "quantity") },
+        })
+
+    }
+
+
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -48,7 +61,7 @@ const ProductPage = () => {
                 <h1>Product</h1>
 
 
-
+                {/* create  product */}
                 <Dialog>
                     <DialogTrigger asChild>
                         <Button id='product_modal' variant="outline">Create Product</Button>
@@ -116,6 +129,67 @@ const ProductPage = () => {
             </div>
 
 
+            {/* update  product */}
+            <Dialog open={isUpdateOpened} onOpenChange={setIsUpdateOpened}>
+
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Update Product Info</DialogTitle>
+
+                    </DialogHeader>
+                    <div className="space-y-6">
+                        <div className="grid flex-1 gap-2">
+                            <Label htmlFor="link" className="sr-only">
+                                Product Name
+                            </Label>
+                            <Input
+                                value={data.name}
+                                onChange={(e) => setData("name", e.target.value)}
+                                placeholder='Insert a valid Product Name'
+                            />
+                            <InputError message={errors.name} />
+                        </div>
+                        <div className="">
+                            <Label htmlFor="link" className="sr-only">
+                                Product Price
+                            </Label>
+                            <Input
+                                value={data.price}
+                                onChange={(e) => setData("price", e.target.value)}
+                                type='number'
+                                min={0}
+                                placeholder='Insert a valid Product Price'
+                            />
+                            <InputError message={errors.price} />
+                        </div>
+                        <div className="grid flex-1 gap-2">
+                            <Label htmlFor="link" className="sr-only">
+                                Stock
+                            </Label>
+                            <Input
+                                value={data.quantity}
+                                onChange={(e) => setData("quantity", e.target.value)}
+                                type='number'
+                                min={0}
+
+                                placeholder='Insert a valid Product Quantity'
+                            />
+                            <InputError message={errors.quantity} />
+                        </div>
+                    </div>
+                    <DialogFooter className="sm:justify-end">
+                        <DialogClose asChild>
+                            <Button onClick={() => setIsUpdateOpened(false)} type="button" variant="secondary">
+                                Close
+                            </Button>
+                        </DialogClose>
+                        <Button onClick={updateProduct} type="button" variant="default">
+                            {processing ? <div className="flex gap-3"><Loader2 className='animate-spin' />  Updating ... </div> : "Update"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
 
 
             <div className="px-6">
@@ -127,23 +201,37 @@ const ProductPage = () => {
                             <TableHead className="w-[100px] uppercase">Id</TableHead>
                             <TableHead>Name</TableHead>
                             <TableHead>Price</TableHead>
-                            <TableHead className="text-right">Quantity</TableHead>
+                            <TableHead className="">Quantity</TableHead>
+                            <TableHead className="">Edit</TableHead>
+                            <TableHead className="">Delete</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                    {
-                        products?.map((p , i) =>
-                        <>
-                        <TableRow>
-                            <TableCell className="font-medium">{p.id}</TableCell>
-                            <TableCell>{p.name}</TableCell>
-                            <TableCell className="text-right">${p.price}</TableCell>
-                            <TableCell className="text-right">{p.quantity} </TableCell>
-                        </TableRow>
-                        </>
-                        
-                        )
-                    }
+                        {
+                            products?.map((p, i) =>
+                                <>
+                                    <TableRow>
+                                        <TableCell className="font-medium">{p.id}</TableCell>
+                                        <TableCell>{p.name}</TableCell>
+                                        <TableCell className="">${p.price}</TableCell>
+                                        <TableCell className="">{p.quantity} </TableCell>
+                                        <TableCell className=""><Button
+                                            onClick={() => {
+                                                setIsUpdateOpened(true)
+                                                setData({
+                                                    name: p.name,
+                                                    price: p.price,
+                                                    quantity: p.quantity
+                                                })
+                                                setSelectedProduct(p)
+                                            }}
+                                            variant="default">Edit</Button> </TableCell>
+                                        <TableCell className=""><Button variant="destructive">Delete</Button> </TableCell>
+                                    </TableRow>
+                                </>
+
+                            )
+                        }
                     </TableBody>
                 </Table>
 
