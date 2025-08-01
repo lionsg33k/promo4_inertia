@@ -21,8 +21,9 @@ const ProductPage = () => {
 
     const { products } = usePage().props
     const [isUpdateOpened, setIsUpdateOpened] = useState(false)
+    const [isDeleteOpened, setIsDeleteOpened] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState(null)
-    const { data, setData, post, processing, errors, reset, put } = useForm({
+    const { data, setData, post, processing, errors, reset, put, delete: destroy } = useForm({
         "name": "",
         "price": 0,
         "quantity": 0
@@ -44,11 +45,24 @@ const ProductPage = () => {
     const updateProduct = () => {
 
         put("/product/update/" + selectedProduct.id, {
-            onError: () => { alert("mochkila fl update") },
+            onError: () => {
+
+                // todo handle  remove   error  message 
+            },
             onSuccess: () => { setIsUpdateOpened(false) },
             onFinish: () => { reset("name", "price", "quantity") },
         })
 
+
+
+    }
+
+
+    const deleteProduct = () => {
+
+        destroy("/product/destroy/" + selectedProduct?.id , {
+            onFinish: () => {setIsDeleteOpened(false)}
+        })
     }
 
 
@@ -192,6 +206,31 @@ const ProductPage = () => {
 
 
 
+
+            {/* Delete  product */}
+            <Dialog open={isDeleteOpened} onOpenChange={setIsDeleteOpened}>
+
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                        <DialogDescription>Are you sure  you want to delete  this product {selectedProduct?.name}</DialogDescription>
+
+                    </DialogHeader>
+
+                    <DialogFooter className="sm:justify-end">
+                        <DialogClose asChild>
+                            <Button onClick={() => setIsUpdateOpened(false)} type="button" variant="secondary">
+                                Close
+                            </Button>
+                        </DialogClose>
+                        <Button onClick={deleteProduct} type="button" variant="destructive">
+                            {processing ? <div className="flex gap-3"><Loader2 className='animate-spin' />  Deleting ... </div> : "Delete"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+
+
             <div className="px-6">
 
                 <Table>
@@ -225,8 +264,18 @@ const ProductPage = () => {
                                                 })
                                                 setSelectedProduct(p)
                                             }}
-                                            variant="default">Edit</Button> </TableCell>
-                                        <TableCell className=""><Button variant="destructive">Delete</Button> </TableCell>
+                                            variant="default">Edit</Button>
+
+                                        </TableCell>
+                                        <TableCell className=""><Button
+                                            onClick={() => {
+                                                setIsDeleteOpened(true)
+                                                setSelectedProduct(p)
+                                            }}
+                                            variant="destructive">Delete</Button>
+
+                                        </TableCell>
+
                                     </TableRow>
                                 </>
 
