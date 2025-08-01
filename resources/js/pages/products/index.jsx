@@ -23,6 +23,7 @@ const ProductPage = () => {
     const [isUpdateOpened, setIsUpdateOpened] = useState(false)
     const [isDeleteOpened, setIsDeleteOpened] = useState(false)
     const [selectedProduct, setSelectedProduct] = useState(null)
+    const [errorMessage, setErrorMessage] = useState(null)
     const { data, setData, post, processing, errors, reset, put, delete: destroy } = useForm({
         "name": "",
         "price": 0,
@@ -46,11 +47,17 @@ const ProductPage = () => {
 
         put("/product/update/" + selectedProduct.id, {
             onError: () => {
+                setErrorMessage("Detected")
 
-                // todo handle  remove   error  message 
+                setTimeout(() => {
+                    setErrorMessage(null)
+                }, 3000);
+
             },
-            onSuccess: () => { setIsUpdateOpened(false) },
-            onFinish: () => { reset("name", "price", "quantity") },
+            onSuccess: () => {
+                setIsUpdateOpened(false)
+                reset("name", "price", "quantity")
+            },
         })
 
 
@@ -60,8 +67,8 @@ const ProductPage = () => {
 
     const deleteProduct = () => {
 
-        destroy("/product/destroy/" + selectedProduct?.id , {
-            onFinish: () => {setIsDeleteOpened(false)}
+        destroy("/product/destroy/" + selectedProduct?.id, {
+            onFinish: () => { setIsDeleteOpened(false) }
         })
     }
 
@@ -161,7 +168,7 @@ const ProductPage = () => {
                                 onChange={(e) => setData("name", e.target.value)}
                                 placeholder='Insert a valid Product Name'
                             />
-                            <InputError message={errors.name} />
+                            {errorMessage && <InputError message={errors.name} />}
                         </div>
                         <div className="">
                             <Label htmlFor="link" className="sr-only">
@@ -174,7 +181,7 @@ const ProductPage = () => {
                                 min={0}
                                 placeholder='Insert a valid Product Price'
                             />
-                            <InputError message={errors.price} />
+                            {errorMessage && <InputError message={errors.price} />}
                         </div>
                         <div className="grid flex-1 gap-2">
                             <Label htmlFor="link" className="sr-only">
@@ -188,7 +195,7 @@ const ProductPage = () => {
 
                                 placeholder='Insert a valid Product Quantity'
                             />
-                            <InputError message={errors.quantity} />
+                            {errorMessage && <InputError message={errors.quantity} />}
                         </div>
                     </div>
                     <DialogFooter className="sm:justify-end">
